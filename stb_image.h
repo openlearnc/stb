@@ -6775,7 +6775,7 @@ static stbi_uc *stbi__process_gif_raster(stbi__context *s, stbi__gif *g)
 
 // this function is designed to support animated gifs, although stb_image doesn't support it
 // two back is the image from two frames ago, used for a very specific disposal format
-static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, int req_comp, stbi_uc *two_back)
+static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, int req_comp, stbi_uc *two_back, int *id, int layers)
 {
    int dispose;
    int first_frame;
@@ -6830,6 +6830,7 @@ static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, i
          // leave the pixels as is, and they will become the new background
          // 1: do not dispose
          // 0:  not specified.
+         *id = layers;
       }
 
       // background is what out is after the undoing of the previou frame;
@@ -6976,12 +6977,14 @@ static void *stbi__load_gif_main(stbi__context *s, int **delays, int *x, int *y,
       STBI_NOTUSED(delays_size);
 
       memset(&g, 0, sizeof(g));
+
       if (delays) {
          *delays = 0;
       }
 
+      int id = 0;
       do {
-         u = stbi__gif_load_next(s, &g, comp, req_comp, two_back);
+         u = stbi__gif_load_next(s, &g, comp, req_comp, two_back, &id, layers);
          if (u == (stbi_uc *) s) u = 0;  // end of animated gif marker
 
          if (u) {
@@ -7019,9 +7022,9 @@ static void *stbi__load_gif_main(stbi__context *s, int **delays, int *x, int *y,
                }
             }
             memcpy( out + ((layers - 1) * stride), u, stride );
-            if (layers >= 2) {
-               two_back = out - 2 * stride;
-            }
+            if (id >= 1) 
+               two_back = out + (id-1) * stride;
+            
 
             if (delays) {
                (*delays)[layers - 1U] = g.delay;
