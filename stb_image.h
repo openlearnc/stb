@@ -7055,7 +7055,7 @@ static void *stbi__gif_load(stbi__context *s, int *x, int *y, int *comp, int req
    memset(&g, 0, sizeof(g));
    STBI_NOTUSED(ri);
 
-   u = stbi__gif_load_next(s, &g, comp, req_comp, 0);
+   u = stbi__gif_load_next(s, &g, comp, req_comp, 0, 0, 0);
    if (u == (stbi_uc *) s) u = 0;  // end of animated gif marker
    if (u) {
       *x = g.w;
